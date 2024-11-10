@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo"></a>
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Over Ons</a></li>
+                <li><a href="#"></a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <a href="#" class="login-button"></a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Essay Evaluatie</h1>
+        <p>Schrijf je essay in het onderstaande vak en klik op "Verzenden" om feedback te ontvangen!</p>
+        <textarea id="inputText" placeholder="Schrijf hier je essay..." rows="10"></textarea>
+        <button id="predictButton">Verzenden</button>
+        <div id="resultContainer" class="result">
+            <h2>Feedback:</h2>
+            <p id="predictionScore">N/A</p>
+            <p><strong>Scores zijn op een schaal van 5.</strong></p> <!-- Toegevoegde regel -->
+        </div>
+    </div>    
+
+    <footer class="footer">
+        <!-- <div class="footer-container">
+            <div class="footer-links">
+                <h4>Links</h4>
+                <ul>
+                    <li><a href="#">Privacybeleid</a></li>
+                    <li><a href="#">Voorwaarden</a></li>
+                    <li><a href="#">Help</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div> -->
+            <!-- <div class="footer-contact">
+                <h4>Contact</h4>
+                <p>Email: info@olvp.com</p>
+                <p>Telefoon: +31 20 123 4567</p>
+            </div> -->
+            <div class="footer-social">
+                <h4>Volg Ons</h4>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 . Alle rechten voorbehouden.</p>
+        </div>
+    </footer>
+
+    
+    <script>
+        document.getElementById('predictButton').addEventListener('click', function() {
+    const inputText = document.getElementById('inputText').value;
+
+    fetch('http://127.0.0.1:5000/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: inputText }),
+    })
+    .then(response => {
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+    })
+    .then(data => {
+        if (data.sorted_prediction) {
+    // Create an HTML list for the predictions
+    const predictionList = document.createElement('ul');
+    let totalScore = 0; // Initialize total score
+    const count = data.sorted_prediction.length; // Get the number of predictions
+
+    data.sorted_prediction.forEach(([label, score]) => {
+        const listItem = document.createElement('li');
+
+        // Create a span for the label
+        const labelElement = document.createElement('span');
+        labelElement.className = 'label'; // Add label class for styling
+        labelElement.innerText = `${label}: `; // Add label text
+
+        // Round the score to the nearest whole number or half
+        const roundedScore = round(score);
+        totalScore += roundedScore; // Add to total score
+
+        // Create a span for the score
+        const scoreElement = document.createElement('span');
+        scoreElement.className = 'value'; // Add value class for styling
+        scoreElement.innerText = roundedScore;
+        
+        // Append label and score to the list item
+        listItem.appendChild(labelElement);
+        listItem.appendChild(scoreElement);
+
+        // Append the list item to the prediction list
+        predictionList.appendChild(listItem);
+    });
+
+    // Calculate the average score
+    const averageScore = count > 0 ? (totalScore / count).toFixed(2) : 0;
+    // const procent = averageScore / 5
+    // Create a paragraph for the average score
+    const averageElement = document.createElement('p');
+    averageElement.className = 'average-score'; // Add class for styling
+    averageElement.innerText = `Gemiddelde Score: ${averageScore}`; // Display average score in percentage
+
+    // Clear previous results and append new predictions
+    const resultContainer = document.getElementById('predictionScore');
+    resultContainer.innerHTML = ''; // Clear previous content
+    resultContainer.appendChild(predictionList);
+    resultContainer.appendChild(averageElement); // Append average score
+} else {
+            document.getElementById('predictionScore').innerText = 'No predictions available.';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('predictionScore').innerText = 'Error occurred. Please try again.';
+    });
+});
+
+function round(num) {
+    // if (num % 1 < 0.6) {
+    //     return Math.floor(num) + 0.5; // Round down to the nearest 0.5
+    // } else {
+    //     return Math.ceil(num); // Round up to the next whole number
+    // }
+    return Number(num.toFixed(2)); // Round to 2 decimal places
+}
+
+    </script>
+</body>
+</html>
